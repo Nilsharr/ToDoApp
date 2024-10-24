@@ -1,0 +1,92 @@
+@HostAddress = http://localhost:5234
+#@HostAddress = https://localhost:7033
+
+// Get all todoitems
+@pageIndex=0
+@pageSize=10
+@showExpired=true
+GET {{HostAddress}}/api/todoitems?pageIndex={{pageIndex}}&pageSize={{pageSize}}&expired={{showExpired}}
+
+###
+
+// Get todoitems incoming today
+// this scripts work in rider, not sure about vs
+< {%
+    // set today variable date
+    request.variables.set("today", new Date().toISOString().slice(0, 10))
+%}
+GET {{HostAddress}}/api/todoitems/incoming?startDate={{today}}
+
+###
+
+// Get todoitems incoming this week
+< {%
+    // set start date to today
+    request.variables.set("startDate", new Date().toISOString().slice(0, 10));
+    // set the end date to 7 days later from now
+    request.variables.set("endDate", new Date(new Date().setDate(new Date().getDate() + 7)).toISOString().slice(0, 10));
+%}
+GET {{HostAddress}}/api/todoitems/incoming?startDate={{startDate}}&endDate={{endDate}}
+
+###
+
+// Get a specific todoitem
+@idToGet=1
+GET {{HostAddress}}/api/todoitems/{{idToGet}}
+
+###
+
+// Add new todoitem
+< {%
+    // set expiry date to 7 days later from now
+    request.variables.set("expiryDate", new Date(new Date().setDate(new Date().getDate() + 7)).toISOString());
+%}
+POST {{HostAddress}}/api/todoitems
+Content-Type: application/json
+
+{
+  "title": "Write todo app",
+  "description": "Lorem ipsum",
+  "expiry": "{{expiryDate}}"
+}
+
+###
+
+// Update todoitem
+< {%
+    // set updated expiry date to 10 days later from now
+    request.variables.set("updatedExpiry", new Date(new Date().setDate(new Date().getDate() + 10)).toISOString());
+%}
+PUT {{HostAddress}}/api/todoitems
+Content-Type: application/json
+
+{
+  "id": 1,
+  "title": "Write todo app",
+  "completionPercentage": 50,
+  "description": "Lorem ipsum dolor sit amet",
+  "expiry": "{{updatedExpiry}}"
+}
+
+###
+
+// Set todoitem completion percentage
+@idToSetPercentage=1
+PATCH {{HostAddress}}/api/todoitems/{{idToSetPercentage}}/percentage
+Content-Type: application/json
+
+{
+  "percentage": 50
+}
+
+###
+
+//Mark todoitem as done
+@idToMark=1
+PATCH {{HostAddress}}/api/todoitems/{{idToMark}}/done
+
+###
+
+// Delete todoitem
+@idToDelete=1
+DELETE {{HostAddress}}/api/todoitems/{{idToDelete}}
